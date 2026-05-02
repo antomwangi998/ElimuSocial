@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base application theme -->
+    <style name="Theme.ElimuSocial" parent="android:Theme.Material.NoTitleBar">
+        <item name="android:windowBackground">#0D0D1A</item>
+        <item name="android:statusBarColor">#0D0D1A</item>
+        <item name="android:navigationBarColor">#0D0D1A</item>
+    </style>
+</resources>

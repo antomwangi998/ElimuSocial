@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Elimu Social</string>
+    <string name="default_web_client_id" translatable="false">760354242157-q2prfnf9s70rnimn91o1h37o66f6ovqc.apps.googleusercontent.com</string>
+    <string name="gcm_defaultSenderId" translatable="false">760354242157</string>
+    <string name="google_api_key" translatable="false">AIzaSyBBzbQVIDVlbMEidcKGVBciF8sJyqoxi3U</string>
+    <string name="google_app_id" translatable="false">1:760354242157:android:0abde8b09525f34daf4964</string>
+    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyBBzbQVIDVlbMEidcKGVBciF8sJyqoxi3U</string>
+    <string name="google_storage_bucket" translatable="false">elimusocial.firebasestorage.app</string>
+    <string name="project_id" translatable="false">elimusocial</string>
+    <style name="Theme.ElimuSocial" parent="android:Theme.AppCompat.NoActionBar">
+        <item name="android:windowBackground">#0D0D1A</item>
+        <item name="android:statusBarColor">#0D0D1A</item>
+        <item name="android:navigationBarColor">#0D0D1A</item>
+    </style>
+</resources>

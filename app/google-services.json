@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "760354242157",
+    "project_id": "elimusocial",
+    "storage_bucket": "elimusocial.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:760354242157:android:0abde8b09525f34daf4964",
+        "android_client_info": {
+          "package_name": "com.elimusocial.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "760354242157-q2prfnf9s70rnimn91o1h37o66f6ovqc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBBzbQVIDVlbMEidcKGVBciF8sJyqoxi3U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "760354242157-q2prfnf9s70rnimn91o1h37o66f6ovqc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
