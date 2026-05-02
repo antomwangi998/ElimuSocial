@@ -21,6 +21,11 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: "8.4"
+
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
@@ -29,11 +34,6 @@ jobs:
 
       - name: Install SDK components
         run: sdkmanager "platforms;android-34" "build-tools;34.0.0"
-
-      - name: Fix gradle wrapper jar
-        run: |
-          curl -L "https://github.com/gradle/gradle/raw/v8.4.0/gradle/wrapper/gradle-wrapper.jar" \
-            -o gradle/wrapper/gradle-wrapper.jar
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -44,7 +44,7 @@ jobs:
           sed -i 's/targetSdk = 35/targetSdk = 34/' app/build.gradle.kts
 
       - name: Build Debug APK
-        run: ./gradlew assembleDebug --no-daemon --stacktrace
+        run: gradle assembleDebug --no-daemon --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
