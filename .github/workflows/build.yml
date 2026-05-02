@@ -38,16 +38,21 @@ jobs:
       - name: Fix versions and themes
         run: |
           ROOT=$(find . -name "settings.gradle.kts" | head -1 | xargs dirname)
-          echo "Project root: $ROOT"
           cd $ROOT
-          # Fix kotlin compose version
           sed -i 's/kotlin = "1.9.22"/kotlin = "2.0.21"/' gradle/libs.versions.toml || true
-          # Fix compileSdk
           sed -i 's/compileSdk = 35/compileSdk = 34/' app/build.gradle.kts || true
           sed -i 's/targetSdk = 35/targetSdk = 34/' app/build.gradle.kts || true
-          # Fix theme - replace with Theme.Material.Light.NoTitleBar which exists in android-34
-          find app/src/main/res -name "themes.xml" | xargs sed -i 's/android:Theme\.Material\.NoTitleBar/android:Theme.Material.Light.NoTitleBar.Fullscreen/g' || true
-          cat app/src/main/res/values/themes.xml
+          # Write a clean themes.xml with no theme parent (Compose doesn't need one)
+          cat > app/src/main/res/values/themes.xml << 'THEMES'
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.ElimuSocial" parent="android:Theme.Material.Light.NoTitleBar">
+        <item name="android:windowBackground">#0D0D1A</item>
+        <item name="android:statusBarColor">#0D0D1A</item>
+        <item name="android:navigationBarColor">#0D0D1A</item>
+    </style>
+</resources>
+THEMES
           chmod +x gradlew || true
           gradle assembleDebug --no-daemon
 
