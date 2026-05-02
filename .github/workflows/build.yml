@@ -35,24 +35,25 @@ jobs:
       - name: Install SDK components
         run: sdkmanager "platforms;android-34" "build-tools;34.0.0"
 
-      - name: Fix versions and themes
+      - name: Fix versions
         run: |
           ROOT=$(find . -name "settings.gradle.kts" | head -1 | xargs dirname)
           cd $ROOT
           sed -i 's/kotlin = "1.9.22"/kotlin = "2.0.21"/' gradle/libs.versions.toml || true
           sed -i 's/compileSdk = 35/compileSdk = 34/' app/build.gradle.kts || true
           sed -i 's/targetSdk = 35/targetSdk = 34/' app/build.gradle.kts || true
-          # Write a clean themes.xml with no theme parent (Compose doesn't need one)
-          cat > app/src/main/res/values/themes.xml << 'THEMES'
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <style name="Theme.ElimuSocial" parent="android:Theme.Material.Light.NoTitleBar">
-        <item name="android:windowBackground">#0D0D1A</item>
-        <item name="android:statusBarColor">#0D0D1A</item>
-        <item name="android:navigationBarColor">#0D0D1A</item>
-    </style>
-</resources>
-THEMES
+
+      - name: Fix theme
+        run: |
+          ROOT=$(find . -name "settings.gradle.kts" | head -1 | xargs dirname)
+          cd $ROOT
+          printf '%s\n' '<?xml version="1.0" encoding="utf-8"?>' '<resources>' '    <style name="Theme.ElimuSocial" parent="android:Theme.Material.Light.NoTitleBar">' '        <item name="android:windowBackground">#0D0D1A</item>' '        <item name="android:statusBarColor">#0D0D1A</item>' '        <item name="android:navigationBarColor">#0D0D1A</item>' '    </style>' '</resources>' > app/src/main/res/values/themes.xml
+          cat app/src/main/res/values/themes.xml
+
+      - name: Build Debug APK
+        run: |
+          ROOT=$(find . -name "settings.gradle.kts" | head -1 | xargs dirname)
+          cd $ROOT
           chmod +x gradlew || true
           gradle assembleDebug --no-daemon
 
