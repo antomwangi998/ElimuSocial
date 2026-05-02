@@ -87,7 +87,6 @@ fun AppNavigation(
             )
         }
         composable(Routes.REELS) {
-            @androidx.compose.foundation.ExperimentalFoundationApi
             ReelsScreenWithPlayer(onBack = { navController.popBackStack() })
         }
         composable(Routes.LIVE_STREAM) { LiveStreamScreen(onBack = { navController.popBackStack() }) }
