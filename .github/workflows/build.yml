@@ -35,36 +35,26 @@ jobs:
       - name: Install SDK components
         run: sdkmanager "platforms;android-34" "build-tools;34.0.0"
 
-      - name: Fix versions
+      - name: Fix project
         run: |
           ROOT=$(find . -name "settings.gradle.kts" | head -1 | xargs dirname)
           cd $ROOT
+
+          # Fix kotlin/sdk versions
           sed -i 's/kotlin = "1.9.22"/kotlin = "2.0.21"/' gradle/libs.versions.toml || true
           sed -i 's/compileSdk = 35/compileSdk = 34/' app/build.gradle.kts || true
           sed -i 's/targetSdk = 35/targetSdk = 34/' app/build.gradle.kts || true
 
-      - name: Fix theme
-        run: |
-          ROOT=$(find . -name "settings.gradle.kts" | head -1 | xargs dirname)
-          cd $ROOT
+          # Fix theme
           find app/src -name "themes.xml" -exec sed -i 's/parent="android:Theme\.[^"]*"/parent="android:Theme.DeviceDefault.NoActionBar"/g' {} \;
 
-      - name: Create launcher icons
-        run: |
-          ROOT=$(find . -name "settings.gradle.kts" | head -1 | xargs dirname)
-          cd $ROOT
-          for dpi in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
-            mkdir -p app/src/main/res/mipmap-$dpi
-            cp $ANDROID_HOME/platforms/android-34/data/res/drawable-$dpi/sym_def_app_icon.png \
-               app/src/main/res/mipmap-$dpi/ic_launcher.png 2>/dev/null || \
-            convert -size 48x48 xc:#0D0D1A app/src/main/res/mipmap-$dpi/ic_launcher.png 2>/dev/null || \
-            cp $ANDROID_HOME/platforms/android-34/data/res/drawable/sym_def_app_icon.png \
-               app/src/main/res/mipmap-$dpi/ic_launcher.png 2>/dev/null || true
-            cp app/src/main/res/mipmap-$dpi/ic_launcher.png \
-               app/src/main/res/mipmap-$dpi/ic_launcher_round.png 2>/dev/null || true
-          done
-          sed -i 's|android:icon="@mipmap/ic_launcher"|android:icon="@android:drawable/sym_def_app_icon"|g' app/src/main/AndroidManifest.xml || true
-          sed -i 's|android:roundIcon="@mipmap/ic_launcher_round"||g' app/src/main/AndroidManifest.xml || true
+          # Replace all mipmap icon refs with built-in android icon
+          sed -i 's|android:icon="@mipmap/ic_launcher"|android:icon="@android:drawable/sym_def_app_icon"|g' app/src/main/AndroidManifest.xml
+          sed -i 's|android:roundIcon="@mipmap/ic_launcher_round"||g' app/src/main/AndroidManifest.xml
+          sed -i 's|android:icon="@mipmap/[^"]*"|android:icon="@android:drawable/sym_def_app_icon"|g' app/src/main/AndroidManifest.xml
+
+          echo "=== AndroidManifest.xml ==="
+          cat app/src/main/AndroidManifest.xml
 
       - name: Build Debug APK
         run: |
