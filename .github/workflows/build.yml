@@ -42,12 +42,6 @@ jobs:
           sed -i 's/kotlin = "1.9.22"/kotlin = "2.0.21"/' gradle/libs.versions.toml || true
           sed -i 's/agp = "8.3.2"/agp = "8.5.2"/' gradle/libs.versions.toml || true
           find app/src -name "themes.xml" -exec sed -i 's/parent="android:Theme\.[^"]*"/parent="android:Theme.DeviceDefault.NoActionBar"/g' {} \;
-          # Add OptIn for ExperimentalFoundationApi in gradle
-          if ! grep -q "freeCompilerArgs" app/build.gradle.kts; then
-            sed -i '/kotlinOptions {/a\        freeCompilerArgs += listOf("-opt-in=androidx.compose.foundation.ExperimentalFoundationApi")' app/build.gradle.kts || true
-          fi
-          # Also add to composeOptions if using kotlinOptions block
-          grep -n "kotlinOptions\|compilerOptions\|freeCompiler" app/build.gradle.kts || true
 
       - name: Build Debug APK
         run: |

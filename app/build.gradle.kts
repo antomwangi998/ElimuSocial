@@ -3,7 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("com.google.gms.google-services")
-    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.22"
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.0.21"
 }
 
 android {
@@ -32,7 +32,13 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    kotlinOptions { jvmTarget = "11" }
+    kotlinOptions {
+        jvmTarget = "11"
+        freeCompilerArgs += listOf(
+            "-opt-in=androidx.compose.foundation.ExperimentalFoundationApi",
+            "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api"
+        )
+    }
     buildFeatures { compose = true }
 }
 
