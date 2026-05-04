@@ -1,6 +1,6 @@
 package com.elimusocial.app.ui.screens.creator
 
-import androidx.compose.foundation.*
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -13,10 +13,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -26,32 +24,31 @@ import com.elimusocial.app.ui.theme.*
 data class Badge(
     val id: String,
     val emoji: String,
-    val name: String,
+    val title: String,
     val description: String,
-    val color: Color,
-    val isEarned: Boolean,
-    val progress: Float = 1f
+    val earned: Boolean,
+    val rarity: String = "Common" // Common, Rare, Epic, Legendary
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AchievementsScreen(onBack: () -> Unit) {
     val badges = listOf(
-        Badge("1", "⭐", "Top Contributor", "You're among the top 5% active members", AccentYellow, true),
-        Badge("2", "📚", "Active Learner", "Completed 10+ learning sessions", AccentBlue, true),
-        Badge("3", "🔥", "Post Streak", "Posted 7 days in a row", AccentOrange, true),
-        Badge("4", "🤝", "Helpful One", "Received 50+ helpful replies", AccentGreen, true),
-        Badge("5", "🧠", "Engaging Mind", "Got 100+ comments on posts", ElectricPurple, true),
-        Badge("6", "🚀", "Early Adopter", "Joined in the first month", LightPurple, true),
-        Badge("7", "🌟", "Rising Star", "Gained 500 followers", AccentYellow, false, 0.6f),
-        Badge("8", "💬", "Conversationalist", "Sent 200+ messages", AccentBlue, false, 0.4f),
-        Badge("9", "🏆", "Champion", "Won a community challenge", AccentOrange, false, 0.1f),
-        Badge("10", "✍️", "Content Creator", "Published 50+ posts", AccentGreen, false, 0.75f),
-        Badge("11", "🎓", "Scholar", "Completed a full learning path", ElectricPurple, false, 0.3f),
-        Badge("12", "👑", "Community Leader", "Admin of 3+ groups", AccentYellow, false, 0.0f)
+        Badge("1", "⭐", "Top Contributor", "You're among the top 5% active members", true, "Legendary"),
+        Badge("2", "📚", "Active Learner", "Completed 10+ learning sessions", true, "Rare"),
+        Badge("3", "🔥", "Post Streak", "Posted 7 days in a row", true, "Rare"),
+        Badge("4", "🤝", "Helpful One", "Helped 50+ students", true, "Common"),
+        Badge("5", "🧠", "Engaging Mind", "Got 100+ replies on your posts", true, "Common"),
+        Badge("6", "🏆", "Champion", "Won a community challenge", false, "Epic"),
+        Badge("7", "🌟", "Influencer", "Reached 10K followers", false, "Legendary"),
+        Badge("8", "💡", "Innovator", "First to try 5 new features", false, "Epic"),
+        Badge("9", "📣", "Announcer", "Made 50+ posts", false, "Common"),
+        Badge("10", "🎯", "Goal Getter", "Completed all onboarding steps", true, "Common"),
+        Badge("11", "👑", "Community Leader", "Admin of 3+ groups", false, "Epic"),
+        Badge("12", "✅", "Verified", "Account verified", true, "Rare"),
     )
 
-    val earned = badges.count { it.isEarned }
+    val earnedCount = badges.count { it.earned }
 
     Scaffold(
         containerColor = DarkBackground,
@@ -61,52 +58,64 @@ fun AchievementsScreen(onBack: () -> Unit) {
                     IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, null, tint = TextPrimary) }
                 },
                 title = { Text("Your Badges", fontWeight = FontWeight.Bold, color = TextPrimary) },
-                actions = {
-                    TextButton(onClick = {}) {
-                        Text("See all", color = ElectricPurple, fontSize = 13.sp)
-                    }
-                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = DarkBackground)
             )
         }
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-            // Progress header
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(Brush.linearGradient(listOf(ElectricPurple, AccentBlue)))
-                    .padding(16.dp)
+            // Header stats
+            Card(
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                colors = CardDefaults.cardColors(containerColor = DarkCard),
+                shape = RoundedCornerShape(16.dp)
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("$earned / ${badges.size} Badges Earned", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                        Spacer(modifier = Modifier.height(8.dp))
-                        LinearProgressIndicator(
-                            progress = { earned.toFloat() / badges.size },
-                            modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
-                            color = Color.White,
-                            trackColor = Color.White.copy(alpha = 0.3f)
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text("Keep going! You're doing great 🎯", color = Color.White.copy(alpha = 0.8f), fontSize = 12.sp)
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(20.dp),
+                    horizontalArrangement = Arrangement.SpaceAround,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(earnedCount.toString(), fontWeight = FontWeight.Bold, color = TextPrimary, fontSize = 28.sp)
+                        Text("Earned", color = TextMuted, fontSize = 13.sp)
                     }
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Text("⭐", fontSize = 44.sp)
+                    Box(modifier = Modifier.width(1.dp).height(40.dp).background(DividerColor))
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text((badges.size - earnedCount).toString(), fontWeight = FontWeight.Bold, color = TextMuted, fontSize = 28.sp)
+                        Text("Locked", color = TextMuted, fontSize = 13.sp)
+                    }
+                    Box(modifier = Modifier.width(1.dp).height(40.dp).background(DividerColor))
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("${(earnedCount * 100 / badges.size)}%", fontWeight = FontWeight.Bold, color = ElectricPurple, fontSize = 28.sp)
+                        Text("Complete", color = TextMuted, fontSize = 13.sp)
+                    }
                 }
             }
 
-            // Badges grid
+            // Progress bar
+            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                Text("Progress", color = TextSecondary, fontSize = 13.sp)
+                Spacer(modifier = Modifier.height(6.dp))
+                LinearProgressIndicator(
+                    progress = { earnedCount.toFloat() / badges.size },
+                    modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
+                    color = ElectricPurple,
+                    trackColor = DarkCard
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            Text("All Badges", fontWeight = FontWeight.SemiBold, color = TextPrimary, fontSize = 15.sp, modifier = Modifier.padding(horizontal = 16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+
             LazyVerticalGrid(
                 columns = GridCells.Fixed(3),
-                contentPadding = PaddingValues(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                modifier = Modifier.fillMaxSize().padding(horizontal = 12.dp),
+                contentPadding = PaddingValues(bottom = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(badges) { badge ->
-                    BadgeCard(badge = badge)
+                items(badges, key = { it.id }) { badge ->
+                    BadgeItem(badge = badge)
                 }
             }
         }
@@ -114,68 +123,55 @@ fun AchievementsScreen(onBack: () -> Unit) {
 }
 
 @Composable
-fun BadgeCard(badge: Badge) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(DarkCard)
-            .alpha(if (badge.isEarned) 1f else 0.5f)
-            .padding(12.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+fun BadgeItem(badge: Badge) {
+    val rarityColor = when (badge.rarity) {
+        "Legendary" -> AccentYellow
+        "Epic" -> ElectricPurple
+        "Rare" -> AccentBlue
+        else -> AccentGreen
+    }
+
+    val bgBrush = if (badge.earned)
+        Brush.linearGradient(listOf(rarityColor.copy(alpha = 0.2f), DarkCard))
+    else
+        Brush.linearGradient(listOf(DarkCard, DarkCard))
+
+    Card(
+        modifier = Modifier.fillMaxWidth().aspectRatio(0.85f),
+        colors = CardDefaults.cardColors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
+        shape = RoundedCornerShape(14.dp)
     ) {
-        Box(contentAlignment = Alignment.Center) {
-            // Badge circle
-            Box(
-                modifier = Modifier
-                    .size(64.dp)
-                    .background(
-                        if (badge.isEarned)
-                            Brush.radialGradient(listOf(badge.color.copy(alpha = 0.3f), badge.color.copy(alpha = 0.05f)))
-                        else
-                            Brush.radialGradient(listOf(DividerColor, DividerColor)),
-                        CircleShape
-                    )
-                    .border(
-                        width = 2.dp,
-                        color = if (badge.isEarned) badge.color else DividerColor,
-                        shape = CircleShape
-                    ),
-                contentAlignment = Alignment.Center
+        Box(modifier = Modifier.fillMaxSize().background(bgBrush), contentAlignment = Alignment.Center) {
+            Column(
+                modifier = Modifier.fillMaxSize().padding(10.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                Text(badge.emoji, fontSize = 28.sp)
-            }
-
-            if (!badge.isEarned && badge.progress > 0f) {
-                CircularProgressIndicator(
-                    progress = { badge.progress },
-                    modifier = Modifier.size(72.dp),
-                    color = badge.color,
-                    trackColor = DividerColor,
-                    strokeWidth = 3.dp
-                )
-            }
-
-            if (badge.isEarned) {
                 Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .size(20.dp)
-                        .background(AccentGreen, CircleShape)
-                        .border(2.dp, DarkCard, CircleShape),
+                    modifier = Modifier.size(54.dp).clip(CircleShape)
+                        .background(if (badge.earned) rarityColor.copy(alpha = 0.25f) else DarkBackground),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Default.Check, null, tint = Color.White, modifier = Modifier.size(12.dp))
+                    Text(
+                        badge.emoji,
+                        fontSize = 26.sp,
+                        color = if (badge.earned) androidx.compose.ui.graphics.Color.Unspecified else androidx.compose.ui.graphics.Color.Gray.copy(alpha = 0.4f)
+                    )
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(badge.title, color = if (badge.earned) TextPrimary else TextMuted, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center, maxLines = 2)
+                Spacer(modifier = Modifier.height(4.dp))
+                Box(
+                    modifier = Modifier.background(rarityColor.copy(alpha = if (badge.earned) 0.2f else 0.1f), RoundedCornerShape(4.dp)).padding(horizontal = 6.dp, vertical = 2.dp)
+                ) {
+                    Text(badge.rarity, color = if (badge.earned) rarityColor else TextMuted, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                 }
             }
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(badge.name, color = if (badge.isEarned) TextPrimary else TextMuted, fontWeight = FontWeight.SemiBold, fontSize = 11.sp, textAlign = TextAlign.Center)
-
-        if (!badge.isEarned && badge.progress > 0f) {
-            Spacer(modifier = Modifier.height(3.dp))
-            Text("${(badge.progress * 100).toInt()}%", color = badge.color, fontSize = 10.sp)
+            if (!badge.earned) {
+                Box(modifier = Modifier.fillMaxSize().background(DarkBackground.copy(alpha = 0.5f)), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Default.Lock, null, tint = TextMuted.copy(alpha = 0.5f), modifier = Modifier.size(20.dp))
+                }
+            }
         }
     }
 }

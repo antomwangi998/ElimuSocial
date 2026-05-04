@@ -2,6 +2,7 @@ package com.elimusocial.app.data.repository
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.storage.FirebaseStorage
@@ -50,8 +51,10 @@ data class FirestorePost(
     val comments: Int = 0,
     val reposts: Int = 0,
     val tags: List<String> = emptyList(),
-    val type: String = "post",  // post | reel | poll | quote
-    val createdAt: Long = System.currentTimeMillis()
+    val type: String = "post",  // post | reel | poll | quote | educational
+    val createdAt: Long = System.currentTimeMillis(),
+    // Feed engine score — updated server-side or locally
+    val score: Double = 0.0
 )
 
 data class FirestoreComment(
@@ -71,12 +74,11 @@ class FirebaseRepository {
     private val db = FirebaseFirestore.getInstance()
     private val storage = FirebaseStorage.getInstance()
 
-    // Collections
-    private val usersCol = db.collection("users")
-    private val postsCol = db.collection("posts")
-    private val commentsCol = db.collection("comments")
-    private val likesCol = db.collection("likes")
-    private val followsCol = db.collection("follows")
+    private val usersCol        = db.collection("users")
+    private val postsCol        = db.collection("posts")
+    private val commentsCol     = db.collection("comments")
+    private val likesCol        = db.collection("likes")
+    private val followsCol      = db.collection("follows")
     private val notificationsCol = db.collection("notifications")
 
     val currentUser: FirebaseUser? get() = auth.currentUser
@@ -88,14 +90,10 @@ class FirebaseRepository {
         return try {
             val result = auth.createUserWithEmailAndPassword(email, password).await()
             val user = result.user!!
-            // Create user profile in Firestore
             val username = "@${name.lowercase().replace(" ", "_")}"
             val firestoreUser = FirestoreUser(
-                uid = user.uid,
-                name = name,
-                username = username,
-                email = email,
-                role = role
+                uid = user.uid, name = name, username = username,
+                email = email, role = role
             )
             usersCol.document(user.uid).set(firestoreUser).await()
             Result.Success(user)
@@ -118,7 +116,6 @@ class FirebaseRepository {
             val credential = com.google.firebase.auth.GoogleAuthProvider.getCredential(idToken, null)
             val result = auth.signInWithCredential(credential).await()
             val user = result.user!!
-            // Create profile if new user
             if (result.additionalUserInfo?.isNewUser == true) {
                 val firestoreUser = FirestoreUser(
                     uid = user.uid,
@@ -178,18 +175,22 @@ class FirebaseRepository {
     suspend fun updateFcmToken(token: String) {
         val uid = currentUserId
         if (uid.isNotEmpty()) {
-            usersCol.document(uid).update("fcmToken", token).await()
+            try { usersCol.document(uid).update("fcmToken", token).await() } catch (_: Exception) {}
         }
     }
 
     // ── Posts ──────────────────────────────────────────────────────────────
+    // Fetch last 100 posts and let FeedEngine.rank() sort them client-side
+    // using the gravity algorithm. This gives fresh + engaging posts priority.
 
     fun getPostsFlow(): Flow<List<FirestorePost>> = callbackFlow {
         val listener = postsCol
             .orderBy("createdAt", Query.Direction.DESCENDING)
-            .limit(50)
+            .limit(100)
             .addSnapshotListener { snap, _ ->
-                val posts = snap?.documents?.mapNotNull { it.toObject(FirestorePost::class.java) }
+                val posts = snap?.documents?.mapNotNull {
+                    it.toObject(FirestorePost::class.java)?.copy(id = it.id)
+                }
                 trySend(posts ?: emptyList())
             }
         awaitClose { listener.remove() }
@@ -201,7 +202,9 @@ class FirebaseRepository {
             .orderBy("createdAt", Query.Direction.DESCENDING)
             .limit(20)
             .addSnapshotListener { snap, _ ->
-                val reels = snap?.documents?.mapNotNull { it.toObject(FirestorePost::class.java) }
+                val reels = snap?.documents?.mapNotNull {
+                    it.toObject(FirestorePost::class.java)?.copy(id = it.id)
+                }
                 trySend(reels ?: emptyList())
             }
         awaitClose { listener.remove() }
@@ -212,10 +215,8 @@ class FirebaseRepository {
             val docRef = postsCol.document()
             val postWithId = post.copy(id = docRef.id, authorId = currentUserId)
             docRef.set(postWithId).await()
-            // Increment user post count
             usersCol.document(currentUserId)
-                .update("posts", com.google.firebase.firestore.FieldValue.increment(1))
-                .await()
+                .update("posts", FieldValue.increment(1)).await()
             Result.Success(docRef.id)
         } catch (e: Exception) {
             Result.Error(e.message ?: "Failed to create post", e)
@@ -240,16 +241,14 @@ class FirebaseRepository {
             val postRef = postsCol.document(postId)
 
             if (likeDoc.exists()) {
-                // Unlike
                 likesCol.document(likeDocId).delete().await()
-                postRef.update("likes", com.google.firebase.firestore.FieldValue.increment(-1)).await()
+                postRef.update("likes", FieldValue.increment(-1)).await()
                 Result.Success(false)
             } else {
-                // Like
                 likesCol.document(likeDocId).set(
                     mapOf("userId" to currentUserId, "postId" to postId, "createdAt" to System.currentTimeMillis())
                 ).await()
-                postRef.update("likes", com.google.firebase.firestore.FieldValue.increment(1)).await()
+                postRef.update("likes", FieldValue.increment(1)).await()
                 Result.Success(true)
             }
         } catch (e: Exception) {
@@ -259,9 +258,18 @@ class FirebaseRepository {
 
     suspend fun isPostLiked(postId: String): Boolean {
         return try {
-            val likeDocId = "${currentUserId}_$postId"
-            likesCol.document(likeDocId).get().await().exists()
-        } catch (e: Exception) { false }
+            likesCol.document("${currentUserId}_$postId").get().await().exists()
+        } catch (_: Exception) { false }
+    }
+
+    // Returns all post IDs the current user has liked — used to init FeedViewModel
+    suspend fun getLikedPostIds(): List<String> {
+        return try {
+            val docs = likesCol
+                .whereEqualTo("userId", currentUserId)
+                .get().await()
+            docs.documents.mapNotNull { it.getString("postId") }
+        } catch (_: Exception) { emptyList() }
     }
 
     // ── Comments ───────────────────────────────────────────────────────────
@@ -284,17 +292,11 @@ class FirebaseRepository {
             val userData = (user as Result.Success).data
             val docRef = commentsCol.document()
             val comment = FirestoreComment(
-                id = docRef.id,
-                postId = postId,
-                authorId = currentUserId,
-                authorName = userData.name,
-                authorAvatarUrl = userData.avatarUrl,
-                content = content
+                id = docRef.id, postId = postId, authorId = currentUserId,
+                authorName = userData.name, authorAvatarUrl = userData.avatarUrl, content = content
             )
             docRef.set(comment).await()
-            postsCol.document(postId)
-                .update("comments", com.google.firebase.firestore.FieldValue.increment(1))
-                .await()
+            postsCol.document(postId).update("comments", FieldValue.increment(1)).await()
             Result.Success(docRef.id)
         } catch (e: Exception) {
             Result.Error(e.message ?: "Failed to add comment", e)
@@ -310,15 +312,15 @@ class FirebaseRepository {
 
             if (followDoc.exists()) {
                 followsCol.document(followDocId).delete().await()
-                usersCol.document(currentUserId).update("following", com.google.firebase.firestore.FieldValue.increment(-1)).await()
-                usersCol.document(targetUid).update("followers", com.google.firebase.firestore.FieldValue.increment(-1)).await()
+                usersCol.document(currentUserId).update("following", FieldValue.increment(-1)).await()
+                usersCol.document(targetUid).update("followers", FieldValue.increment(-1)).await()
                 Result.Success(false)
             } else {
                 followsCol.document(followDocId).set(
                     mapOf("followerId" to currentUserId, "followingId" to targetUid, "createdAt" to System.currentTimeMillis())
                 ).await()
-                usersCol.document(currentUserId).update("following", com.google.firebase.firestore.FieldValue.increment(1)).await()
-                usersCol.document(targetUid).update("followers", com.google.firebase.firestore.FieldValue.increment(1)).await()
+                usersCol.document(currentUserId).update("following", FieldValue.increment(1)).await()
+                usersCol.document(targetUid).update("followers", FieldValue.increment(1)).await()
                 Result.Success(true)
             }
         } catch (e: Exception) {
@@ -329,10 +331,10 @@ class FirebaseRepository {
     suspend fun isFollowing(targetUid: String): Boolean {
         return try {
             followsCol.document("${currentUserId}_$targetUid").get().await().exists()
-        } catch (e: Exception) { false }
+        } catch (_: Exception) { false }
     }
 
-    // ── Storage (upload images/videos) ────────────────────────────────────
+    // ── Storage ────────────────────────────────────────────────────────────
 
     suspend fun uploadImage(byteArray: ByteArray, path: String): Result<String> {
         return try {
@@ -354,12 +356,32 @@ class FirebaseRepository {
                 .startAt(query)
                 .endAt(query + "\uf8ff")
                 .limit(20)
-                .get()
-                .await()
-            val users = result.documents.mapNotNull { it.toObject(FirestoreUser::class.java) }
-            Result.Success(users)
+                .get().await()
+            Result.Success(result.documents.mapNotNull { it.toObject(FirestoreUser::class.java) })
         } catch (e: Exception) {
             Result.Error(e.message ?: "Search failed", e)
+        }
+    }
+
+    // ── Notifications ──────────────────────────────────────────────────────
+
+    suspend fun createNotification(
+        recipientId: String, type: String, message: String, postId: String = ""
+    ): Result<Unit> {
+        return try {
+            val notification = mapOf(
+                "recipientId" to recipientId,
+                "senderId" to currentUserId,
+                "type" to type,
+                "message" to message,
+                "postId" to postId,
+                "isRead" to false,
+                "createdAt" to System.currentTimeMillis()
+            )
+            notificationsCol.document().set(notification).await()
+            Result.Success(Unit)
+        } catch (e: Exception) {
+            Result.Error(e.message ?: "Failed to create notification", e)
         }
     }
 }
