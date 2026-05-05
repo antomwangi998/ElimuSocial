@@ -76,7 +76,7 @@ fun FirebasePostCard(
                 }
                 Spacer(modifier = Modifier.height(10.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    PostActionButton(
+                    FirebasePostActionButton(
                         icon = if (liked) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
                         count = likeCount,
                         tint = if (liked) AccentRed else TextMuted,
@@ -86,8 +86,8 @@ fun FirebasePostCard(
                             onLike()
                         }
                     )
-                    PostActionButton(icon = Icons.Outlined.ChatBubbleOutline, count = post.comments, tint = TextMuted, onClick = {})
-                    PostActionButton(icon = Icons.Outlined.Repeat, count = post.reposts, tint = TextMuted, onClick = {})
+                    FirebasePostActionButton(icon = Icons.Outlined.ChatBubbleOutline, count = post.comments, tint = TextMuted, onClick = {})
+                    FirebasePostActionButton(icon = Icons.Outlined.Repeat, count = post.reposts, tint = TextMuted, onClick = {})
                     IconButton(onClick = { isBookmarked = !isBookmarked }, modifier = Modifier.size(32.dp)) {
                         Icon(
                             if (isBookmarked) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
@@ -114,7 +114,7 @@ fun formatTimestamp(millis: Long): String {
 }
 
 @Composable
-fun PostActionButton(icon: androidx.compose.ui.graphics.vector.ImageVector, count: Int, tint: Color, onClick: () -> Unit) {
+fun FirebasePostActionButton(icon: androidx.compose.ui.graphics.vector.ImageVector, count: Int, tint: Color, onClick: () -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable(onClick = onClick)) {
         Icon(icon, null, tint = tint, modifier = Modifier.size(20.dp))
         if (count > 0) {

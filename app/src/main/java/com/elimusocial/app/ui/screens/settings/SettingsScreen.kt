@@ -122,7 +122,7 @@ fun MainSettingsScreen(
                 Spacer(modifier = Modifier.height(12.dp))
                 SettingsSectionTitle("Content")
             }
-            item { SettingsItem(icon = Icons.Outlined.TuneOutlined, title = "Content Preferences", subtitle = "Choose what you see", onClick = {}) }
+            item { SettingsItem(icon = Icons.Outlined.Tune, title = "Content Preferences", subtitle = "Choose what you see", onClick = {}) }
 
             item {
                 Spacer(modifier = Modifier.height(12.dp))
