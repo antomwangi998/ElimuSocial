@@ -2,38 +2,26 @@ package com.elimusocial.app.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// === PRIMARY BRAND COLORS ===
-val ElectricPurple = Color(0xFF6C3CE1)
-val LightPurple = Color(0xFFA78BFA)
-val DeepPurple = Color(0xFF4A1FA8)
+// ── Primary palette ────────────────────────────────────────────────────────
+val ElectricPurple = Color(0xFF7C4DFF)
+val LightPurple    = Color(0xFFB39DDB)
+val AccentBlue     = Color(0xFF2196F3)
+val AccentGreen    = Color(0xFF4CAF50)
+val AccentOrange   = Color(0xFFFF9800)
+val AccentRed      = Color(0xFFF44336)
+val AccentYellow   = Color(0xFFFFD600)
+val AccentPink     = Color(0xFFE91E63)
 
-// === BACKGROUNDS ===
+// ── Background / Surface ───────────────────────────────────────────────────
 val DarkBackground = Color(0xFF0D0D1A)
-val DarkSurface = Color(0xFF1A1A2E)
-val DarkCard = Color(0xFF16213E)
-val DarkElevated = Color(0xFF1F2B4D)
+val DarkSurface    = Color(0xFF12122A)
+val DarkCard       = Color(0xFF1A1A2E)
+val DarkElevated   = Color(0xFF222244)
 
-// === TEXT ===
-val TextPrimary = Color(0xFFFFFFFF)
-val TextSecondary = Color(0xFFB0B8D4)
-val TextMuted = Color(0xFF6B7599)
+// ── Text ───────────────────────────────────────────────────────────────────
+val TextPrimary    = Color(0xFFFFFFFF)
+val TextSecondary  = Color(0xFFB0B0CC)
+val TextMuted      = Color(0xFF6B6B8A)
 
-// === ACCENTS ===
-val AccentGreen = Color(0xFF22C55E)
-val AccentRed = Color(0xFFEF4444)
-val AccentBlue = Color(0xFF3B82F6)
-val AccentOrange = Color(0xFFF97316)
-val AccentYellow = Color(0xFFEAB308)
-
-// === LIGHT THEME ===
-val LightBackground = Color(0xFFF8F9FF)
-val LightSurface = Color(0xFFFFFFFF)
-val LightCard = Color(0xFFF1F3FF)
-
-// === GRADIENTS (used as start/end) ===
-val GradientStart = Color(0xFF6C3CE1)
-val GradientEnd = Color(0xFF3B82F6)
-
-// === DIVIDER ===
-val DividerColor = Color(0xFF2A2D4A)
-val OnlineGreen = Color(0xFF22C55E)
+// ── Dividers ───────────────────────────────────────────────────────────────
+val DividerColor   = Color(0xFF2A2A40)

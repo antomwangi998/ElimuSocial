@@ -13,8 +13,8 @@ import com.elimusocial.app.ui.screens.auth.LoginScreenFirebase
 import com.elimusocial.app.ui.screens.auth.SignUpScreen
 import com.elimusocial.app.ui.screens.bookmarks.BookmarksScreen
 import com.elimusocial.app.ui.screens.community.CommunitiesScreen
-import com.elimusocial.app.ui.screens.community.EventsScreen
 import com.elimusocial.app.ui.screens.community.GroupDetailScreen
+import com.elimusocial.app.ui.screens.community.EventsScreen
 import com.elimusocial.app.ui.screens.creator.AchievementsScreen
 import com.elimusocial.app.ui.screens.creator.AnalyticsScreen
 import com.elimusocial.app.ui.screens.creator.CreatorDashboardScreen
@@ -28,6 +28,7 @@ import com.elimusocial.app.ui.screens.onboarding.ChooseGoalsScreen
 import com.elimusocial.app.ui.screens.onboarding.FollowPeopleScreen
 import com.elimusocial.app.ui.screens.onboarding.OnboardingScreen
 import com.elimusocial.app.ui.screens.postdetail.PostDetailScreen
+import com.elimusocial.app.ui.screens.profile.ProfileScreen
 import com.elimusocial.app.ui.screens.search.SearchScreen
 import com.elimusocial.app.ui.screens.settings.SettingsScreen
 import com.elimusocial.app.ui.screens.social.FollowingFollowersScreen
@@ -68,6 +69,7 @@ object Routes {
     const val BOOKMARKS       = "bookmarks"
     const val FOLLOWING       = "following"
     const val FOLLOWERS       = "followers"
+    const val PROFILE         = "profile"
 }
 
 @Composable
@@ -83,8 +85,12 @@ fun AppNavigation(
 
         composable(Routes.SPLASH) {
             SplashScreen(
-                onNavigateToOnboarding = { navController.navigate(Routes.ONBOARDING) { popUpTo(Routes.SPLASH) { inclusive = true } } },
-                onNavigateToHome = { navController.navigate(Routes.HOME) { popUpTo(Routes.SPLASH) { inclusive = true } } }
+                onNavigateToOnboarding = {
+                    navController.navigate(Routes.ONBOARDING) { popUpTo(Routes.SPLASH) { inclusive = true } }
+                },
+                onNavigateToHome = {
+                    navController.navigate(Routes.HOME) { popUpTo(Routes.SPLASH) { inclusive = true } }
+                }
             )
         }
 
@@ -100,13 +106,21 @@ fun AppNavigation(
         }
 
         composable(Routes.CHOOSE_GOALS) {
-            ChooseGoalsScreen(onContinue = { navController.navigate(Routes.LOGIN) { popUpTo(Routes.ONBOARDING) { inclusive = true } } })
+            ChooseGoalsScreen(
+                onContinue = {
+                    navController.navigate(Routes.LOGIN) {
+                        popUpTo(Routes.ONBOARDING) { inclusive = true }
+                    }
+                }
+            )
         }
 
         composable(Routes.LOGIN) {
             LoginScreenFirebase(
                 viewModel = authViewModel,
-                onLoginSuccess = { navController.navigate(Routes.HOME) { popUpTo(Routes.LOGIN) { inclusive = true } } },
+                onLoginSuccess = {
+                    navController.navigate(Routes.HOME) { popUpTo(Routes.LOGIN) { inclusive = true } }
+                },
                 onNavigateToSignUp = { navController.navigate(Routes.SIGNUP) }
             )
         }
@@ -114,16 +128,22 @@ fun AppNavigation(
         composable(Routes.SIGNUP) {
             SignUpScreen(
                 viewModel = authViewModel,
-                onSignUpSuccess = { navController.navigate(Routes.HOME) { popUpTo(Routes.LOGIN) { inclusive = true } } },
+                onSignUpSuccess = {
+                    navController.navigate(Routes.HOME) { popUpTo(Routes.LOGIN) { inclusive = true } }
+                },
                 onNavigateToLogin = { navController.popBackStack() }
             )
         }
 
         composable(Routes.HOME) {
+            val feedState by feedViewModel.uiState.collectAsStateWithLifecycle()
             HomeScreen(
                 authViewModel = authViewModel,
                 feedViewModel = feedViewModel,
-                onLogout = { authViewModel.signOut(); navController.navigate(Routes.LOGIN) { popUpTo(Routes.HOME) { inclusive = true } } },
+                onLogout = {
+                    authViewModel.signOut()
+                    navController.navigate(Routes.LOGIN) { popUpTo(Routes.HOME) { inclusive = true } }
+                },
                 onNavigate = { route -> navController.navigate(route) }
             )
         }
@@ -132,25 +152,129 @@ fun AppNavigation(
             @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
             ReelsScreenWithPlayer(onBack = { navController.popBackStack() })
         }
-        composable(Routes.LIVE_STREAM) { LiveStreamScreen(onBack = { navController.popBackStack() }) }
-        composable(Routes.SPACES) { SpacesScreen(onBack = { navController.popBackStack() }) }
-        composable(Routes.COMMUNITIES) { CommunitiesScreen(onCommunityClick = { navController.navigate(Routes.GROUP_DETAIL) }) }
-        composable(Routes.GROUP_DETAIL) { GroupDetailScreen(community = SampleData.communities[0], onBack = { navController.popBackStack() }) }
-        composable(Routes.EVENTS) { EventsScreen(onBack = { navController.popBackStack() }) }
-        composable(Routes.POLLS) { PollsScreen(onBack = { navController.popBackStack() }) }
-        composable(Routes.CREATOR_DASH) { CreatorDashboardScreen(onBack = { navController.popBackStack() }) }
-        composable(Routes.MONETIZATION) { MonetizationScreen(onBack = { navController.popBackStack() }) }
-        composable(Routes.ACHIEVEMENTS) { AchievementsScreen(onBack = { navController.popBackStack() }) }
-        composable(Routes.ANALYTICS) { AnalyticsScreen(onBack = { navController.popBackStack() }) }
-        composable(Routes.ELIMU_AI) { ElimuAiScreen(onBack = { navController.popBackStack() }) }
-        composable(Routes.STUDY_PLANNER) { StudyPlannerScreen(onBack = { navController.popBackStack() }) }
-        composable(Routes.MESSAGES) { MessagesScreen(onBack = { navController.popBackStack() }) }
-        composable(Routes.SETTINGS) { SettingsScreen(onBack = { navController.popBackStack() }, onLogout = { authViewModel.signOut(); navController.navigate(Routes.LOGIN) { popUpTo(Routes.HOME) { inclusive = true } } }) }
-        composable(Routes.NOTIFICATIONS) { NotificationsScreen(onBack = { navController.popBackStack() }) }
-        composable(Routes.SEARCH) { SearchScreen(onBack = { navController.popBackStack() }) }
-        composable(Routes.POST_DETAIL) { PostDetailScreen(onBack = { navController.popBackStack() }) }
-        composable(Routes.BOOKMARKS) { BookmarksScreen(onBack = { navController.popBackStack() }) }
-        composable(Routes.FOLLOWING) { FollowingFollowersScreen(initialTab = 0, onBack = { navController.popBackStack() }) }
-        composable(Routes.FOLLOWERS) { FollowingFollowersScreen(initialTab = 1, onBack = { navController.popBackStack() }) }
+
+        composable(Routes.LIVE_STREAM) {
+            LiveStreamScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(Routes.SPACES) {
+            SpacesScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(Routes.COMMUNITIES) {
+            CommunitiesScreen(
+                onCommunityClick = { community ->
+                    navController.navigate(Routes.GROUP_DETAIL)
+                }
+            )
+        }
+
+        composable(Routes.GROUP_DETAIL) {
+            GroupDetailScreen(
+                community = com.elimusocial.app.ui.screens.community.Community(
+                    "1", "Computer Science Hub",
+                    "Students who love coding, tech & solutions",
+                    1200, 25, "Tech", "💻", isJoined = true
+                ),
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Routes.EVENTS) {
+            EventsScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(Routes.POLLS) {
+            PollsScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(Routes.CREATOR_DASH) {
+            CreatorDashboardScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(Routes.MONETIZATION) {
+            MonetizationScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(Routes.ACHIEVEMENTS) {
+            AchievementsScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(Routes.ANALYTICS) {
+            AnalyticsScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(Routes.ELIMU_AI) {
+            ElimuAiScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(Routes.STUDY_PLANNER) {
+            StudyPlannerScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(Routes.MESSAGES) {
+            MessagesScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(Routes.SETTINGS) {
+            SettingsScreen(
+                onBack = { navController.popBackStack() },
+                onLogout = {
+                    authViewModel.signOut()
+                    navController.navigate(Routes.LOGIN) { popUpTo(Routes.HOME) { inclusive = true } }
+                }
+            )
+        }
+
+        composable(Routes.NOTIFICATIONS) {
+            NotificationsScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(Routes.SEARCH) {
+            SearchScreen(
+                onBack = { navController.popBackStack() },
+                onNavigate = { route -> navController.navigate(route) }
+            )
+        }
+
+        composable(Routes.POST_DETAIL) {
+            val feedState by feedViewModel.uiState.collectAsStateWithLifecycle()
+            PostDetailScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Routes.BOOKMARKS) {
+            BookmarksScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(Routes.FOLLOWING) {
+            FollowingFollowersScreen(
+                initialTab = 0,
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Routes.FOLLOWERS) {
+            FollowingFollowersScreen(
+                initialTab = 1,
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Routes.PROFILE) {
+            val authState2 by authViewModel.uiState.collectAsStateWithLifecycle()
+            val feedState by feedViewModel.uiState.collectAsStateWithLifecycle()
+            ProfileScreen(
+                userProfile = authState2.userProfile,
+                posts = feedState.posts.filter { it.authorId == authState2.currentUser?.uid },
+                isOwnProfile = true,
+                onNavigate = { route -> navController.navigate(route) },
+                onBack = { navController.popBackStack() },
+                onAvatarUpload = { bytes -> authViewModel.uploadAvatar(bytes) },
+                onCoverUpload = { bytes -> authViewModel.uploadCover(bytes) },
+                onSaveProfile = { name, bio, location -> authViewModel.updateProfile(name, bio, location) }
+            )
+        }
     }
 }

@@ -38,7 +38,7 @@
 
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
-            android:value="elimu_social" />
+            android:value="elimu_general" />
 
     </application>
 </manifest>
