@@ -43,13 +43,6 @@ data class GroupPost(
     val time: String
 )
 
-data class Discussion(
-    val id: String,
-    val title: String,
-    val replies: Int,
-    val time: String,
-    val isHot: Boolean = false
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
